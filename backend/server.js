@@ -74,6 +74,10 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+ 
+app.get('/healthcheck', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+  });
 
 // User Login
 app.post('/login', async (req, res) => {
