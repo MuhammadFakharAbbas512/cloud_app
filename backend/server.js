@@ -107,12 +107,11 @@ app.get('/posts', authenticate, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-app.post('/posts', authenticate, upload.single('image'), async (req, res) => {
+app.post('/posts', authenticate, upload.single('file'), async (req, res) => {
   try {
     const { title, content } = req.body;
-    let imageUrl = null;
-    
+    let fileUrl = null;
+
     if (req.file) {
       const params = {
         Bucket: process.env.S3_BUCKET_NAME,
@@ -120,21 +119,21 @@ app.post('/posts', authenticate, upload.single('image'), async (req, res) => {
         Body: req.file.buffer,
         ContentType: req.file.mimetype
       };
-      
+
       const uploadedFile = await s3.upload(params).promise();
-      imageUrl = uploadedFile.Location;
+      fileUrl = uploadedFile.Location;
     }
-    
+
     const [result] = await pool.query(
       'INSERT INTO posts (title, content, image_url, user_id) VALUES (?, ?, ?, ?)',
-      [title, content, imageUrl, req.user.id]
+      [title, content, fileUrl, req.user.id]
     );
-    
+
     res.status(201).json({ 
       id: result.insertId, 
       title, 
       content, 
-      image_url: imageUrl 
+      image_url: fileUrl 
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
